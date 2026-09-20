@@ -1,0 +1,6 @@
+# Local development profile:
+# Allows testing endpoints directly without requiring an active Azure Entra ID tenant token.
+logging:
+  level:
+    com.pedidos360: DEBUG
+    org.springframework.security: INFO

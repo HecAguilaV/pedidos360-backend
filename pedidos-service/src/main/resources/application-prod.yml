@@ -1,0 +1,9 @@
+# Production profile:
+# Validates JWT tokens against Microsoft Entra ID (Sections 13, 16, 24).
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER}
+          audiences: ${JWT_AUDIENCE}
