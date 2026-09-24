@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.pedidos360</groupId>
+    <artifactId>pedidos360-backend</artifactId>
+    <version>1.0.0</version>
+    <packaging>pom</packaging>
+    <name>pedidos360-backend</name>
+    <description>Agregador de Microservicios Pedidos360</description>
+
+    <modules>
+        <module>productos-service</module>
+        <module>pedidos-service</module>
+        <module>carrito-service</module>
+        <module>notifications-service</module>
+        <module>envios-service</module>
+    </modules>
+</project>
