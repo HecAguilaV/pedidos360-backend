@@ -59,6 +59,27 @@ services:
       postgres:
         condition: service_healthy
 
+  carrito-service:
+    build:
+      context: ./carrito-service
+      dockerfile: Dockerfile
+    container_name: pedidos360-carrito-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-pedidos360}
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   rabbitmq:
     image: rabbitmq:3-management-alpine
     container_name: pedidos360-rabbitmq
