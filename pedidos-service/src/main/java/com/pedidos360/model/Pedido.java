@@ -28,6 +28,9 @@ public class Pedido {
     @Column(nullable = false, length = 100)
     private String cliente;
 
+    @Column(length = 150)
+    private String clienteEmail;
+
     @NotBlank(message = "El estado es obligatorio")
     @Column(nullable = false, length = 50)
     private String estado;
@@ -94,6 +97,14 @@ public class Pedido {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public String getClienteEmail() {
+        return clienteEmail;
+    }
+
+    public void setClienteEmail(String clienteEmail) {
+        this.clienteEmail = clienteEmail;
     }
 
     public BigDecimal getTotal() {
