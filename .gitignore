@@ -51,3 +51,10 @@ buildNumber.properties
 .DS_Store
 Thumbs.db
 .atl/
+
+# Directories
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+frontend/build/
+pedidos360-backend/docs/
