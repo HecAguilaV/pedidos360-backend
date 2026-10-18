@@ -45,8 +45,24 @@ public class EmailService {
     }
 
     public boolean sendDirectEmail(String recipient, String subject, String clientName, Long orderId, BigDecimal total, List<OrdenCreadaEvent.ItemOrdenEvent> items) {
-        String htmlContent = buildReceiptHtml(orderId, clientName, recipient, total, items);
-        return sendHtmlEmail(recipient, subject, htmlContent);
+        String cleanRecipient = sanitizeRecipient(recipient);
+        String htmlContent = buildReceiptHtml(orderId, clientName, cleanRecipient, total, items);
+        return sendHtmlEmail(cleanRecipient, subject, htmlContent);
+    }
+
+    public boolean sendCustomEmail(String recipient, String subject, String body) {
+        String cleanRecipient = sanitizeRecipient(recipient);
+        String resolvedSubject = (subject != null && !subject.isBlank()) ? subject : "Notificación Pedidos360";
+        String resolvedBody = (body != null) ? body : "";
+        String htmlContent = buildCustomNotificationHtml(cleanRecipient, resolvedSubject, resolvedBody);
+        return sendHtmlEmail(cleanRecipient, resolvedSubject, htmlContent);
+    }
+
+    public String sanitizeRecipient(String recipient) {
+        if (recipient == null) {
+            return "";
+        }
+        return recipient.trim().replaceAll("^\"+|\"+$", "").trim();
     }
 
     private boolean sendHtmlEmail(String recipient, String subject, String htmlContent) {
@@ -74,6 +90,31 @@ public class EmailService {
             log.error("[EmailService ERROR] Fallo al enviar correo via SMTP: {}", e.getMessage());
             return false;
         }
+    }
+
+    private String buildCustomNotificationHtml(String recipient, String subject, String body) {
+        return String.format("""
+            <!DOCTYPE html>
+            <html lang="es">
+            <head><meta charset="UTF-8"></head>
+            <body style="margin: 0; padding: 20px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+                <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
+                    <div style="background: linear-gradient(135deg, #0f172a 0%%, #1e293b 100%%); padding: 30px; color: #ffffff; text-align: center;">
+                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">PEDIDOS 360</h1>
+                        <p style="margin: 5px 0 0 0; font-size: 14px; color: #94a3b8;">Notificación Oficial del Sistema</p>
+                    </div>
+                    <div style="padding: 24px;">
+                        <h2 style="margin: 0 0 12px 0; font-size: 18px; color: #0f172a;">%s</h2>
+                        <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #334155; white-space: pre-line;">%s</p>
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">Destinatario: <strong style="color: #0f172a;">%s</strong></p>
+                    </div>
+                    <div style="background: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                        <p style="margin: 0; font-size: 11px; color: #94a3b8;">Evaluación Cloud Native I &bull; DSY1107 &bull; Duoc UC</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        """, subject, body, recipient);
     }
 
     private String buildReceiptHtml(Long orderId, String clientName, String recipient, BigDecimal total, List<OrdenCreadaEvent.ItemOrdenEvent> items) {

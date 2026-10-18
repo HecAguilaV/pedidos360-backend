@@ -4,8 +4,13 @@ Repositorio de microservicios backend para la plataforma **Pedidos360** (Cloud N
 
 ## Arquitectura de Servicios
 
-- **productos-service** (`:8082`): Gestión de catálogo de productos (CRUD).
-- **pedidos-service** (`:8081`): Gestión del ciclo de vida de pedidos.
+- **productos-service** (`:8082`): Gestión de catálogo de productos (CRUD) y actualización asíncrona de inventario.
+- **pedidos-service** (`:8081`): Gestión del ciclo de vida de pedidos y publicación de `orden.creada`.
+- **carrito-service** (`:8083`): Gestión de carrito de compras por usuario.
+- **notifications-service** (`:8084`): Envío de boletas electrónicas HTML vía SMTP (consumidor RabbitMQ `order-notifications` y endpoints directos REST/form-data).
+- **envios-service** (`:8085`): Gestión de despachos y generación de códigos de seguimiento (`TRACK-2026-XXXXX`).
+- **pagos-service** (`:8086`): Procesamiento de pagos y emisión de `pago.procesado`.
+- **RabbitMQ** (`:5672` / `:15672`): Broker de mensajería AMQP (`orders.exchange`).
 - **PostgreSQL** (`:5432`): Base de datos relacional (Amazon RDS PostgreSQL en producción / Docker en local).
 
 ## Requisitos
@@ -39,6 +44,10 @@ Repositorio de microservicios backend para la plataforma **Pedidos360** (Cloud N
      - `GET http://localhost:8081/api/v1/pedidos`
      - `GET http://localhost:8081/api/v1/pedidos/1`
      - `POST http://localhost:8081/api/v1/pedidos`
+   - **Notificaciones (`notifications-service`):**
+     - `POST http://localhost:8084/api/email/enviar` (`multipart/form-data` o `application/x-www-form-urlencoded` con parámetros `to`, `subject`, `body`)
+     - `POST http://localhost:8084/api/v1/notificaciones/enviar` (JSON payload)
+     - `GET http://localhost:8084/api/v1/notificaciones/status`
 
 ## Variables de Entorno para Producción (AWS + Microsoft Entra ID)
 

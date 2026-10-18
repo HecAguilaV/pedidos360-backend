@@ -5,6 +5,7 @@ import com.pedidos360.controller.dto.NotificationResponse;
 import com.pedidos360.event.OrdenCreadaEvent;
 import com.pedidos360.service.EmailService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/notificaciones")
 public class NotificationController {
 
     private final EmailService emailService;
@@ -23,7 +23,7 @@ public class NotificationController {
         this.emailService = emailService;
     }
 
-    @PostMapping("/enviar")
+    @PostMapping("/api/v1/notificaciones/enviar")
     public ResponseEntity<NotificationResponse> enviarNotificacionDirecta(
             @Valid @RequestBody ManualNotificationRequest request) {
 
@@ -40,8 +40,9 @@ public class NotificationController {
                 ? request.items()
                 : List.of(new OrdenCreadaEvent.ItemOrdenEvent("PROD-001", "Laptop Pro 16", 1, total));
 
+        String destinatario = emailService.sanitizeRecipient(request.destinatario());
         boolean exito = emailService.sendDirectEmail(
-                request.destinatario(),
+                destinatario,
                 asunto,
                 cliente,
                 request.orderId() != null ? request.orderId() : 1001L,
@@ -50,19 +51,55 @@ public class NotificationController {
         );
 
         String mensaje = exito
-                ? "Notificacion enviada correctamente a " + request.destinatario()
+                ? "Notificacion enviada correctamente a " + destinatario
                 : "Fallo al enviar la notificacion";
 
-        return ResponseEntity.ok(new NotificationResponse(
+        HttpStatus status = exito ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR;
+        return ResponseEntity.status(status).body(new NotificationResponse(
                 exito,
                 mensaje,
-                request.destinatario(),
+                destinatario,
                 asunto,
                 LocalDateTime.now()
         ));
     }
 
-    @GetMapping("/status")
+    @PostMapping("/api/email/enviar")
+    public ResponseEntity<NotificationResponse> enviarEmailPorFormulario(
+            @RequestParam("to") String to,
+            @RequestParam(value = "subject", defaultValue = "Notificación Pedidos360") String subject,
+            @RequestParam(value = "body", defaultValue = "") String body) {
+
+        String destinatario = emailService.sanitizeRecipient(to);
+        String asuntoLimpio = stripSurroundingQuotes(subject);
+        String cuerpoLimpio = stripSurroundingQuotes(body);
+
+        if (destinatario.isBlank()) {
+            return ResponseEntity.badRequest().body(new NotificationResponse(
+                    false,
+                    "El parametro 'to' es obligatorio",
+                    "",
+                    asuntoLimpio,
+                    LocalDateTime.now()
+            ));
+        }
+
+        boolean exito = emailService.sendCustomEmail(destinatario, asuntoLimpio, cuerpoLimpio);
+        String mensaje = exito
+                ? "¡Correo enviado exitosamente a " + destinatario + "!"
+                : "Fallo al enviar el correo a " + destinatario;
+
+        HttpStatus status = exito ? HttpStatus.OK : HttpStatus.INTERNAL_SERVER_ERROR;
+        return ResponseEntity.status(status).body(new NotificationResponse(
+                exito,
+                mensaje,
+                destinatario,
+                asuntoLimpio,
+                LocalDateTime.now()
+        ));
+    }
+
+    @GetMapping("/api/v1/notificaciones/status")
     public ResponseEntity<Map<String, Object>> getStatus() {
         return ResponseEntity.ok(Map.of(
                 "servicio", "notifications-service",
@@ -71,5 +108,12 @@ public class NotificationController {
                 "exchange", "orders.exchange",
                 "timestamp", LocalDateTime.now()
         ));
+    }
+
+    private String stripSurroundingQuotes(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value.trim().replaceAll("^\"+|\"+$", "").trim();
     }
 }
