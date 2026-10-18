@@ -15,9 +15,9 @@ Repositorio de microservicios backend para la plataforma **Pedidos360** (Cloud N
 
 ## Coreografía de Eventos (RabbitMQ)
 
-- `pedidos-service` publica `orden.creada` hacia `orders.exchange` únicamente **después del commit** de la transacción en PostgreSQL (`TransactionSynchronization.afterCommit()`), evitando eventos huérfanos si la escritura falla.
-- Cuatro colas durables consumen `orden.creada`: `stock-decrement` (`productos-service`), `order-notifications` (`notifications-service`), `shipping-dispatch` (`envios-service`) y `order-payments` (`pagos-service`).
-- `pagos-service` registra la liquidación y emite `pago.procesado` también tras confirmar su transacción local. Si el broker rechaza una publicación, el error se registra en nivel `ERROR` y se propaga (sin bloques `catch` silenciosos).
+- **Topología Pub/Sub (`TopicExchange` `orders.exchange`):** `pedidos-service` publica `orden.creada` hacia `orders.exchange` únicamente **después del commit** de la transacción en PostgreSQL (`TransactionSynchronization.afterCommit()`), evitando eventos huérfanos si la escritura falla.
+- Cinco colas durables consumen `orden.creada`: `stock-decrement` (`productos-service`), `order-notifications` (`notifications-service`), `shipping-dispatch` (`envios-service`), `order-payments` (`pagos-service`) y `cart-clear` (`carrito-service`).
+- **Topología Punto a Punto (`DirectExchange` `payments.direct.exchange`):** `pagos-service` registra la liquidación y publica `pago.procesado` hacia la cola dedicada `order-payment-confirmed` dentro de `TransactionSynchronization.beforeCommit(false)`. De esta forma, si el broker rechaza la publicación, la transacción local de `Pago` hace rollback y el mensaje `orden.creada` puede reintentarse sin ser descartado por el filtro de idempotencia (`findByOrderId`). `pedidos-service` consume `order-payment-confirmed` y actualiza la orden a `PAGADO`.
 
 ## Requisitos
 
@@ -26,12 +26,12 @@ Repositorio de microservicios backend para la plataforma **Pedidos360** (Cloud N
 
 ## Ejecución Local
 
-1. Copiar las variables de entorno (opcional si usás los defaults):
+1. Copiar las variables de entorno (o ejecutar `./configure-lab.sh` en AWS):
    ```bash
    cp .env.example .env
    ```
 
-2. Levantar la base de datos y los microservicios:
+2. Levantar la base de datos, los microservicios y el gateway Nginx:
    ```bash
    docker compose up --build -d
    ```
@@ -41,7 +41,7 @@ Repositorio de microservicios backend para la plataforma **Pedidos360** (Cloud N
    docker compose logs -f
    ```
 
-4. Endpoints disponibles en local (perfil `dev`):
+4. Endpoints disponibles en local (perfil `dev`, vía gateway `:80` / `:8080` o puertos directos):
    - **Productos:**
      - `GET http://localhost:8082/api/v1/productos`
      - `GET http://localhost:8082/api/v1/productos/1`
@@ -55,17 +55,30 @@ Repositorio de microservicios backend para la plataforma **Pedidos360** (Cloud N
      - `POST http://localhost:8084/api/v1/notificaciones/enviar` (JSON payload)
      - `GET http://localhost:8084/api/v1/notificaciones/status`
 
-## Variables de Entorno para Producción (AWS + Microsoft Entra ID)
+## Variables de Entorno para Producción (AWS EC2 + RDS + Entra ID + Cognito)
 
-Al desplegar en **AWS EC2** con **RDS** y **Entra ID**, configurar en el entorno:
+Al desplegar en **AWS EC2** (o al rotar de laboratorio con `./configure-lab.sh`), configurar en `.env`:
 
 | Variable | Descripción | Ejemplo |
 |---|---|---|
-| `DB_HOST` | Endpoint del clúster Amazon RDS | `pedidos360-db.xyz.us-east-1.rds.amazonaws.com` |
+| `SPRING_PROFILES_ACTIVE` | Activa validación estricta JWT y RBAC | `prod` |
+| `DB_HOST` | Endpoint de Amazon RDS PostgreSQL (o `postgres` en Docker) | `pedidos360-db.xyz.us-east-1.rds.amazonaws.com` |
 | `DB_PORT` | Puerto de PostgreSQL | `5432` |
 | `DB_NAME` | Nombre de la base de datos | `pedidos360` |
 | `DB_USERNAME` | Usuario maestro RDS | `postgres` |
 | `DB_PASSWORD` | Contraseña RDS | `miPasswordSeguro123` |
 | `JWT_ISSUER` | Issuer de Microsoft Entra ID | `https://login.microsoftonline.com/<TENANT_ID>/v2.0` |
-| `JWT_AUDIENCE` | Audience registrada en Entra | `api://<BACKEND_APP_ID>` |
-| `SPRING_PROFILES_ACTIVE` | Activa validación estricta JWT | `prod` |
+| `JWT_AUDIENCE` | Audience registrada en Entra | `api://<BACKEND_APP_ID>,<BACKEND_APP_ID>` |
+| `COGNITO_REGION` | Región del User Pool de AWS Cognito | `us-east-1` |
+| `COGNITO_USER_POOL_ID` | ID del User Pool (inyectado en runtime al frontend) | `us-east-1_AbCdEf123` |
+| `COGNITO_CLIENT_ID` | App Client ID público de Cognito | `1a2b3c4d5e6f7g8h9i0j` |
+| `COGNITO_DOMAIN` | Dominio Hosted UI de Cognito | `https://pedidos360.auth.us-east-1.amazoncognito.com` |
+| `COGNITO_REDIRECT_URI` | Redirect URI tras OAuth2 Hosted UI | `https://<id>.cloudfront.net/login` |
+| `COGNITO_ISSUER` | Issuer validado por los 6 microservicios | `https://cognito-idp.us-east-1.amazonaws.com/us-east-1_AbCdEf123` |
+| `CORS_ALLOWED_ORIGINS` | Orígenes habilitados en CORS | `https://<id>.cloudfront.net,http://<IP-EC2>` |
+
+### Inyección Runtime de AWS Cognito en el Frontend (Rotación sin Rebuild)
+El contenedor `pedidos360-frontend` ejecuta `/docker-entrypoint.d/40-runtime-config.sh` al iniciar Nginx y genera `/usr/share/nginx/html/assets/runtime-config.json` a partir de las variables `COGNITO_*` definidas en `.env` y pasadas en `docker-compose.yml`. Cuando cambia el laboratorio de AWS, basta con correr `./configure-lab.sh` y `docker compose up -d` sin recompilar la imagen de Angular. La configuración de Microsoft Entra ID permanece en `src/environments/environment.prod.ts`.
+
+### HTTPS para Microsoft Entra ID (MSAL / WebCrypto) en AWS EC2
+Microsoft Entra ID exige `https://` para Redirect URIs que no sean `localhost`, y `@azure/msal-browser` requiere `window.crypto.subtle` (disponible únicamente en contextos seguros `https://` o `http://localhost`). Dado que AWS Certificate Manager (ACM) no emite certificados para IPs públicas, se debe crear una distribución **AWS CloudFront** frente al origen HTTP (puerto `80`) de la instancia EC2 para obtener un dominio `https://<id>.cloudfront.net` con certificado TLS válido de AWS, y registrar ese `https://<id>.cloudfront.net` como Redirect URI SPA en Azure Entra ID.

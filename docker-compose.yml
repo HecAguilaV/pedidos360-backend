@@ -26,15 +26,15 @@ services:
     ports:
       - "8082:8082"
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
       DB_NAME: ${DB_NAME:-pedidos360}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
       RABBITMQ_HOST: rabbitmq
@@ -56,15 +56,15 @@ services:
     ports:
       - "8081:8081"
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
       DB_NAME: ${DB_NAME:-pedidos360}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
       RABBITMQ_HOST: rabbitmq
@@ -86,8 +86,8 @@ services:
     ports:
       - "8083:8083"
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
       DB_NAME: ${DB_NAME:-pedidos360}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -98,7 +98,7 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
     depends_on:
@@ -127,7 +127,7 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
     depends_on:
@@ -143,8 +143,8 @@ services:
     ports:
       - "8085:8085"
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
       DB_NAME: ${DB_NAME:-pedidos360}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -155,7 +155,7 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
     depends_on:
@@ -173,8 +173,8 @@ services:
     ports:
       - "8086:8086"
     environment:
-      DB_HOST: postgres
-      DB_PORT: 5432
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
       DB_NAME: ${DB_NAME:-pedidos360}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -185,7 +185,7 @@ services:
       JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost:8080,http://localhost,http://*:4200,http://*:80,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
     depends_on:
@@ -209,6 +209,7 @@ services:
       COGNITO_USER_POOL_ID: ${COGNITO_USER_POOL_ID:-}
       COGNITO_REGION: ${COGNITO_REGION:-us-east-1}
       COGNITO_REDIRECT_URI: ${COGNITO_REDIRECT_URI:-}
+      COGNITO_SCOPES: ${COGNITO_SCOPES:-openid profile email}
     depends_on:
       - pedidos-service
       - productos-service
