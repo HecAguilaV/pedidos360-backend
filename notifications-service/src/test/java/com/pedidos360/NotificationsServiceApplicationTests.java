@@ -60,4 +60,17 @@ class NotificationsServiceApplicationTests {
                 .andExpect(jsonPath("$.exito").value(true))
                 .andExpect(jsonPath("$.destinatario").value("cliente@pedidos360.cl"));
     }
+
+    @Test
+    void shouldSafelyHandleHtmlSpecialCharactersInCustomEmailEndpoint() throws Exception {
+        mockMvc.perform(post("/api/email/enviar")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("to", "profesor@duocuc.cl")
+                        .param("subject", "Alerta <Stock & Pagos>")
+                        .param("body", "Monto > $1000 & <script>alert(1)</script>"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exito").value(true))
+                .andExpect(jsonPath("$.asunto").value("Alerta <Stock & Pagos>"));
+    }
 }
+

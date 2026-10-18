@@ -54,7 +54,7 @@ class PagosServiceApplicationTests {
         verify(rabbitTemplate, never()).convertAndSend(any(), any(), any(PagoProcesadoEvent.class));
 
         for (TransactionSynchronization sync : TransactionSynchronizationManager.getSynchronizations()) {
-            sync.afterCommit();
+            sync.beforeCommit(false);
         }
 
         verify(rabbitTemplate, times(1)).convertAndSend(any(), any(), any(PagoProcesadoEvent.class));
@@ -80,6 +80,15 @@ class PagosServiceApplicationTests {
                 List.of()
         );
 
-        assertThrows(IllegalStateException.class, () -> listener.procesarPagoOrden(event));
+        TransactionSynchronizationManager.initSynchronization();
+        listener.procesarPagoOrden(event);
+
+        List<TransactionSynchronization> syncs = TransactionSynchronizationManager.getSynchronizations();
+        assertThrows(IllegalStateException.class, () -> {
+            for (TransactionSynchronization sync : syncs) {
+                sync.beforeCommit(false);
+            }
+        });
     }
 }
+

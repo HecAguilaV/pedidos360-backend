@@ -59,6 +59,12 @@ public class PagoController {
 
     @PostMapping("/procesar")
     public ResponseEntity<Pago> procesarPagoManual(@Valid @RequestBody ProcesarPagoRequest request) {
+        var existente = pagoRepository.findByOrderId(request.orderId());
+        if (existente.isPresent()) {
+            log.info("[PAGOS] Solicitud manual idempotente: la orden #{} ya posee pago registrado.", request.orderId());
+            return ResponseEntity.ok(existente.get());
+        }
+
         String metodo = (request.metodoPago() != null && !request.metodoPago().isBlank())
                 ? request.metodoPago()
                 : "LINEA_CREDITO_B2B";

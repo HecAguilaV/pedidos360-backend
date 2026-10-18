@@ -73,4 +73,29 @@ class PedidoServiceTest {
 
         assertThrows(IllegalStateException.class, () -> publisher.publishOrderCreated(event));
     }
+
+    @Test
+    void shouldNotThrowInAfterCommitWhenPublishFailsSoCommittedOrderDoesNotReturn500() {
+        PedidoRepository repository = mock(PedidoRepository.class);
+        OrderEventPublisher publisher = mock(OrderEventPublisher.class);
+        doThrow(new IllegalStateException("RabbitMQ temporarily unavailable"))
+                .when(publisher).publishOrderCreated(any(OrdenCreadaEvent.class));
+        PedidoService service = new PedidoService(repository, publisher);
+
+        Pedido incoming = new Pedido("Empresa Demo", "CONFIRMADO", new BigDecimal("250.00"));
+        Pedido saved = new Pedido("Empresa Demo", "CONFIRMADO", new BigDecimal("250.00"));
+        saved.setId(43L);
+        when(repository.save(any(Pedido.class))).thenReturn(saved);
+
+        TransactionSynchronizationManager.initSynchronization();
+
+        service.create(incoming);
+
+        for (TransactionSynchronization sync : TransactionSynchronizationManager.getSynchronizations()) {
+            sync.afterCommit();
+        }
+
+        verify(publisher, times(1)).publishOrderCreated(any(OrdenCreadaEvent.class));
+    }
 }
+

@@ -40,7 +40,7 @@ public class NotificationController {
                 ? request.items()
                 : List.of(new OrdenCreadaEvent.ItemOrdenEvent("PROD-001", "Laptop Pro 16", 1, total));
 
-        String destinatario = emailService.sanitizeRecipient(request.destinatario());
+        String destinatario = emailService.sanitizeParam(request.destinatario());
         boolean exito = emailService.sendDirectEmail(
                 destinatario,
                 asunto,
@@ -70,9 +70,9 @@ public class NotificationController {
             @RequestParam(value = "subject", defaultValue = "Notificación Pedidos360") String subject,
             @RequestParam(value = "body", defaultValue = "") String body) {
 
-        String destinatario = emailService.sanitizeRecipient(to);
-        String asuntoLimpio = stripSurroundingQuotes(subject);
-        String cuerpoLimpio = stripSurroundingQuotes(body);
+        String destinatario = emailService.sanitizeParam(to);
+        String asuntoLimpio = emailService.sanitizeParam(subject);
+        String cuerpoLimpio = emailService.sanitizeParam(body);
 
         if (destinatario.isBlank()) {
             return ResponseEntity.badRequest().body(new NotificationResponse(
@@ -108,12 +108,5 @@ public class NotificationController {
                 "exchange", "orders.exchange",
                 "timestamp", LocalDateTime.now()
         ));
-    }
-
-    private String stripSurroundingQuotes(String value) {
-        if (value == null) {
-            return "";
-        }
-        return value.trim().replaceAll("^\"+|\"+$", "").trim();
     }
 }

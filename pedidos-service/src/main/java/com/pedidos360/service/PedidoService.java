@@ -3,6 +3,8 @@ package com.pedidos360.service;
 import com.pedidos360.event.OrdenCreadaEvent;
 import com.pedidos360.model.Pedido;
 import com.pedidos360.repository.PedidoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -15,6 +17,8 @@ import java.util.Optional;
 @Service
 @Transactional
 public class PedidoService {
+
+    private static final Logger log = LoggerFactory.getLogger(PedidoService.class);
 
     private final PedidoRepository pedidoRepository;
     private final OrderEventPublisher orderEventPublisher;
@@ -62,7 +66,12 @@ public class PedidoService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    orderEventPublisher.publishOrderCreated(event);
+                    try {
+                        orderEventPublisher.publishOrderCreated(event);
+                    } catch (Exception e) {
+                        log.error("Orden #{} ya confirmada en BD, pero fallo la publicacion post-commit de 'orden.creada': {}",
+                                saved.getId(), e.getMessage(), e);
+                    }
                 }
             });
         } else {

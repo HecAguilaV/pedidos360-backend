@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.math.BigDecimal;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -29,7 +29,7 @@ public class EmailService {
 
     public boolean sendOrderReceiptEmail(OrdenCreadaEvent event) {
         String recipient = (event.clienteEmail() != null && !event.clienteEmail().isBlank())
-                ? event.clienteEmail()
+                ? sanitizeParam(event.clienteEmail())
                 : "cliente@pedidos360.cl";
 
         String subject = "Boleta Electrónica de Compra - Pedidos360 #" + event.orderId();
@@ -45,24 +45,26 @@ public class EmailService {
     }
 
     public boolean sendDirectEmail(String recipient, String subject, String clientName, Long orderId, BigDecimal total, List<OrdenCreadaEvent.ItemOrdenEvent> items) {
-        String cleanRecipient = sanitizeRecipient(recipient);
+        String cleanRecipient = sanitizeParam(recipient);
+        String cleanSubject = sanitizeParam(subject);
         String htmlContent = buildReceiptHtml(orderId, clientName, cleanRecipient, total, items);
-        return sendHtmlEmail(cleanRecipient, subject, htmlContent);
+        return sendHtmlEmail(cleanRecipient, cleanSubject, htmlContent);
     }
 
     public boolean sendCustomEmail(String recipient, String subject, String body) {
-        String cleanRecipient = sanitizeRecipient(recipient);
-        String resolvedSubject = (subject != null && !subject.isBlank()) ? subject : "Notificación Pedidos360";
-        String resolvedBody = (body != null) ? body : "";
-        String htmlContent = buildCustomNotificationHtml(cleanRecipient, resolvedSubject, resolvedBody);
+        String cleanRecipient = sanitizeParam(recipient);
+        String cleanSubject = sanitizeParam(subject);
+        String resolvedSubject = !cleanSubject.isBlank() ? cleanSubject : "Notificación Pedidos360";
+        String cleanBody = sanitizeParam(body);
+        String htmlContent = buildCustomNotificationHtml(cleanRecipient, resolvedSubject, cleanBody);
         return sendHtmlEmail(cleanRecipient, resolvedSubject, htmlContent);
     }
 
-    public String sanitizeRecipient(String recipient) {
-        if (recipient == null) {
+    public String sanitizeParam(String value) {
+        if (value == null) {
             return "";
         }
-        return recipient.trim().replaceAll("^\"+|\"+$", "").trim();
+        return value.trim().replaceAll("^\"+|\"+$", "").trim();
     }
 
     private boolean sendHtmlEmail(String recipient, String subject, String htmlContent) {
@@ -93,6 +95,10 @@ public class EmailService {
     }
 
     private String buildCustomNotificationHtml(String recipient, String subject, String body) {
+        String safeSubject = HtmlUtils.htmlEscape(subject != null ? subject : "");
+        String safeBody = HtmlUtils.htmlEscape(body != null ? body : "");
+        String safeRecipient = HtmlUtils.htmlEscape(recipient != null ? recipient : "");
+
         return String.format("""
             <!DOCTYPE html>
             <html lang="es">
@@ -114,7 +120,7 @@ public class EmailService {
                 </div>
             </body>
             </html>
-        """, subject, body, recipient);
+        """, safeSubject, safeBody, safeRecipient);
     }
 
     private String buildReceiptHtml(Long orderId, String clientName, String recipient, BigDecimal total, List<OrdenCreadaEvent.ItemOrdenEvent> items) {
@@ -122,6 +128,7 @@ public class EmailService {
         if (items != null && !items.isEmpty()) {
             for (OrdenCreadaEvent.ItemOrdenEvent item : items) {
                 BigDecimal subtotal = item.unitPrice().multiply(BigDecimal.valueOf(item.quantity()));
+                String safeProductName = HtmlUtils.htmlEscape(item.productName() != null ? item.productName() : "");
                 itemsRows.append(String.format("""
                     <tr style="border-bottom: 1px solid #e2e8f0;">
                         <td style="padding: 12px; font-family: sans-serif; font-size: 14px; color: #1e293b;">%s</td>
@@ -129,7 +136,7 @@ public class EmailService {
                         <td style="padding: 12px; font-family: sans-serif; font-size: 14px; color: #64748b; text-align: right;">$%.2f</td>
                         <td style="padding: 12px; font-family: sans-serif; font-size: 14px; font-weight: bold; color: #0f172a; text-align: right;">$%.2f</td>
                     </tr>
-                """, item.productName(), item.quantity(), item.unitPrice(), subtotal));
+                """, safeProductName, item.quantity(), item.unitPrice(), subtotal));
             }
         } else {
             itemsRows.append("""
@@ -197,6 +204,11 @@ public class EmailService {
                 </div>
             </body>
             </html>
-        """, orderId != null ? orderId : 1001L, clientName, recipient, itemsRows.toString(), total != null ? total : BigDecimal.ZERO);
+        """,
+                orderId != null ? orderId : 1001L,
+                HtmlUtils.htmlEscape(clientName != null ? clientName : ""),
+                HtmlUtils.htmlEscape(recipient != null ? recipient : ""),
+                itemsRows.toString(),
+                total != null ? total : BigDecimal.ZERO);
     }
 }
