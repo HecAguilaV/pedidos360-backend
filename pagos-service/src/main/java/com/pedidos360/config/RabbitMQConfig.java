@@ -14,15 +14,29 @@ public class RabbitMQConfig {
     @Value("${rabbitmq.exchange.orders:orders.exchange}")
     private String ordersExchange;
 
+    @Value("${rabbitmq.exchange.payments-direct:payments.direct.exchange}")
+    private String paymentsDirectExchange;
+
     @Value("${rabbitmq.queue.payments:order-payments}")
     private String paymentsQueue;
+
+    @Value("${rabbitmq.queue.payment-confirmed:order-payment-confirmed}")
+    private String paymentConfirmedQueue;
 
     @Value("${rabbitmq.routing.order-created:orden.creada}")
     private String orderCreatedRoutingKey;
 
+    @Value("${rabbitmq.routing.payment-processed:pago.procesado}")
+    private String paymentProcessedRoutingKey;
+
     @Bean
     public TopicExchange ordersExchange() {
         return new TopicExchange(ordersExchange, true, false);
+    }
+
+    @Bean
+    public DirectExchange paymentsDirectExchange() {
+        return new DirectExchange(paymentsDirectExchange, true, false);
     }
 
     @Bean
@@ -31,8 +45,18 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public Queue paymentConfirmedQueue() {
+        return QueueBuilder.durable(paymentConfirmedQueue).build();
+    }
+
+    @Bean
     public Binding paymentsBinding(Queue paymentsQueue, TopicExchange ordersExchange) {
         return BindingBuilder.bind(paymentsQueue).to(ordersExchange).with(orderCreatedRoutingKey);
+    }
+
+    @Bean
+    public Binding paymentConfirmedBinding(Queue paymentConfirmedQueue, DirectExchange paymentsDirectExchange) {
+        return BindingBuilder.bind(paymentConfirmedQueue).to(paymentsDirectExchange).with(paymentProcessedRoutingKey);
     }
 
     @Bean

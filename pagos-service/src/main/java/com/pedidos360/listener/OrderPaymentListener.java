@@ -25,11 +25,11 @@ public class OrderPaymentListener {
     private final PagoRepository pagoRepository;
     private final RabbitTemplate rabbitTemplate;
 
-    @Value("${rabbitmq.exchange.orders:orders.exchange}")
-    private String ordersExchange;
+    @Value("${rabbitmq.exchange.payments-direct:payments.direct.exchange}")
+    private String paymentsDirectExchange = "payments.direct.exchange";
 
     @Value("${rabbitmq.routing.payment-processed:pago.procesado}")
-    private String paymentProcessedRoutingKey;
+    private String paymentProcessedRoutingKey = "pago.procesado";
 
     public OrderPaymentListener(PagoRepository pagoRepository, RabbitTemplate rabbitTemplate) {
         this.pagoRepository = pagoRepository;
@@ -91,11 +91,11 @@ public class OrderPaymentListener {
 
     private void publishPaymentProcessed(PagoProcesadoEvent pagoEvent) {
         try {
-            rabbitTemplate.convertAndSend(ordersExchange, paymentProcessedRoutingKey, pagoEvent);
-            log.info("[RABBITMQ] Publicado evento '{}' en exchange '{}' para Orden #{}",
-                    paymentProcessedRoutingKey, ordersExchange, pagoEvent.orderId());
+            rabbitTemplate.convertAndSend(paymentsDirectExchange, paymentProcessedRoutingKey, pagoEvent);
+            log.info("[RABBITMQ P2P] Publicado evento '{}' en DirectExchange '{}' para Orden #{}",
+                    paymentProcessedRoutingKey, paymentsDirectExchange, pagoEvent.orderId());
         } catch (Exception e) {
-            log.error("[RABBITMQ] Error al emitir evento pago.procesado para Orden #{}: {}",
+            log.error("[RABBITMQ P2P] Error al emitir evento pago.procesado para Orden #{}: {}",
                     pagoEvent.orderId(), e.getMessage(), e);
             throw new IllegalStateException("Failed to publish pago.procesado event for order ID " + pagoEvent.orderId(), e);
         }

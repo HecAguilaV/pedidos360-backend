@@ -11,6 +11,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -28,10 +29,13 @@ public class PagoController {
     private final RabbitTemplate rabbitTemplate;
 
     @Value("${rabbitmq.exchange.orders:orders.exchange}")
-    private String ordersExchange;
+    private String ordersExchange = "orders.exchange";
+
+    @Value("${rabbitmq.exchange.payments-direct:payments.direct.exchange}")
+    private String paymentsDirectExchange = "payments.direct.exchange";
 
     @Value("${rabbitmq.routing.payment-processed:pago.procesado}")
-    private String paymentProcessedRoutingKey;
+    private String paymentProcessedRoutingKey = "pago.procesado";
 
     public PagoController(PagoRepository pagoRepository, RabbitTemplate rabbitTemplate) {
         this.pagoRepository = pagoRepository;
@@ -58,6 +62,7 @@ public class PagoController {
     }
 
     @PostMapping("/procesar")
+    @Transactional
     public ResponseEntity<Pago> procesarPagoManual(@Valid @RequestBody ProcesarPagoRequest request) {
         var existente = pagoRepository.findByOrderId(request.orderId());
         if (existente.isPresent()) {
@@ -96,11 +101,11 @@ public class PagoController {
                     pagoGuardado.getCodigoAutorizacion(),
                     pagoGuardado.getFechaPago()
             );
-            rabbitTemplate.convertAndSend(ordersExchange, paymentProcessedRoutingKey, event);
-            log.info("[RABBITMQ] Publicado evento '{}' en exchange '{}' para Orden #{}",
-                    paymentProcessedRoutingKey, ordersExchange, pagoGuardado.getOrderId());
+            rabbitTemplate.convertAndSend(paymentsDirectExchange, paymentProcessedRoutingKey, event);
+            log.info("[RABBITMQ P2P] Publicado evento '{}' en DirectExchange '{}' para Orden #{}",
+                    paymentProcessedRoutingKey, paymentsDirectExchange, pagoGuardado.getOrderId());
         } catch (Exception e) {
-            log.error("[RABBITMQ] Error al publicar evento '{}' para Orden #{}: {}",
+            log.error("[RABBITMQ P2P] Error al publicar evento '{}' para Orden #{}: {}",
                     paymentProcessedRoutingKey, pagoGuardado.getOrderId(), e.getMessage(), e);
             throw new IllegalStateException("Failed to publish pago.procesado event for order ID " + pagoGuardado.getOrderId(), e);
         }
@@ -115,7 +120,9 @@ public class PagoController {
                 "puerto", 8086,
                 "estado", "OPERATIVO",
                 "colaRabbitMQ", "order-payments",
-                "exchange", "orders.exchange",
+                "exchange", ordersExchange,
+                "exchangeP2P", paymentsDirectExchange,
+                "colaP2P", "order-payment-confirmed",
                 "timestamp", LocalDateTime.now()
         ));
     }

@@ -35,6 +35,7 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost,http://*:4200,http://*:80,https://*.amazonaws.com}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
@@ -63,6 +64,7 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost,http://*:4200,http://*:80,https://*.amazonaws.com}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
@@ -95,6 +97,7 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost,http://*:4200,http://*:80,https://*.amazonaws.com}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
     depends_on:
       postgres:
         condition: service_healthy
@@ -122,6 +125,7 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost,http://*:4200,http://*:80,https://*.amazonaws.com}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -148,6 +152,7 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost,http://*:4200,http://*:80,https://*.amazonaws.com}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
     depends_on:
       postgres:
         condition: service_healthy
@@ -176,6 +181,7 @@ services:
       JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost,http://*:4200,http://*:80,https://*.amazonaws.com}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      JDK_JAVA_OPTIONS: ${JDK_JAVA_OPTIONS:--Xms64m -Xmx192m -XX:+UseSerialGC -Xss512k}
     depends_on:
       postgres:
         condition: service_healthy
