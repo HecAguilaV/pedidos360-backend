@@ -85,6 +85,7 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health", "/error").permitAll()
+                .requestMatchers("/api/v1/pedidos/ops/**").hasAnyRole("Administrador", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/v1/pedidos/**").hasAnyRole("Administrador", "ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/v1/pedidos/**").hasAnyAuthority(
                     "SCOPE_pedidos360.access", "SCOPE_pedidos.read",
