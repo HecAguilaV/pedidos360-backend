@@ -1,10 +1,14 @@
 package com.pedidos360.model;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.DecimalMin;
@@ -12,6 +16,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "pedidos")
@@ -39,6 +45,10 @@ public class Pedido {
     @DecimalMin(value = "0.0", inclusive = true, message = "El total no puede ser negativo")
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal total;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "pedido_items", joinColumns = @JoinColumn(name = "pedido_id"))
+    private List<PedidoItem> items = new ArrayList<>();
 
     public Pedido() {
     }
@@ -114,4 +124,13 @@ public class Pedido {
     public void setTotal(BigDecimal total) {
         this.total = total;
     }
+
+    public List<PedidoItem> getItems() {
+        return items;
+    }
+
+    public void setItems(List<PedidoItem> items) {
+        this.items = items != null ? items : new ArrayList<>();
+    }
 }
+

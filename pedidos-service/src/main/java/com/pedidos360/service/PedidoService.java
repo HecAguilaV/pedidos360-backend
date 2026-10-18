@@ -39,9 +39,17 @@ public class PedidoService {
     }
 
     public Pedido create(Pedido pedido) {
-        return createWithItems(pedido, List.of(
-            new OrdenCreadaEvent.ItemOrdenEvent("PROD-001", "Laptop Pro Gamer", 1, pedido.getTotal())
-        ));
+        List<OrdenCreadaEvent.ItemOrdenEvent> mappedItems = (pedido.getItems() != null && !pedido.getItems().isEmpty())
+                ? pedido.getItems().stream()
+                    .map(item -> new OrdenCreadaEvent.ItemOrdenEvent(
+                            item.getProductCode(),
+                            item.getProductName(),
+                            item.getQuantity() != null && item.getQuantity() > 0 ? item.getQuantity() : 1,
+                            item.getUnitPrice() != null ? item.getUnitPrice() : pedido.getTotal()
+                    ))
+                    .toList()
+                : List.of();
+        return createWithItems(pedido, mappedItems);
     }
 
     public Pedido createWithItems(Pedido pedido, List<OrdenCreadaEvent.ItemOrdenEvent> items) {

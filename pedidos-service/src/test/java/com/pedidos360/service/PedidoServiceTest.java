@@ -3,9 +3,11 @@ package com.pedidos360.service;
 import com.pedidos360.config.RabbitMQConfig;
 import com.pedidos360.event.OrdenCreadaEvent;
 import com.pedidos360.model.Pedido;
+import com.pedidos360.model.PedidoItem;
 import com.pedidos360.repository.PedidoRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -15,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -35,10 +38,15 @@ class PedidoServiceTest {
         OrderEventPublisher publisher = mock(OrderEventPublisher.class);
         PedidoService service = new PedidoService(repository, publisher);
 
-        Pedido incoming = new Pedido("Empresa Demo", "CONFIRMADO", new BigDecimal("250.00"));
-        Pedido saved = new Pedido("Empresa Demo", "CONFIRMADO", new BigDecimal("250.00"));
-        saved.setId(42L);
-        when(repository.save(any(Pedido.class))).thenReturn(saved);
+        Pedido incoming = new Pedido("Empresa Demo", "CONFIRMADO", new BigDecimal("859.98"));
+        incoming.setItems(List.of(
+                new PedidoItem("PROD-002", "Monitor 4K UltraWide", 2, new BigDecimal("429.99"))
+        ));
+        when(repository.save(any(Pedido.class))).thenAnswer(inv -> {
+            Pedido p = inv.getArgument(0);
+            p.setId(42L);
+            return p;
+        });
 
         TransactionSynchronizationManager.initSynchronization();
 
@@ -50,7 +58,13 @@ class PedidoServiceTest {
             sync.afterCommit();
         }
 
-        verify(publisher, times(1)).publishOrderCreated(any(OrdenCreadaEvent.class));
+        ArgumentCaptor<OrdenCreadaEvent> captor = ArgumentCaptor.forClass(OrdenCreadaEvent.class);
+        verify(publisher, times(1)).publishOrderCreated(captor.capture());
+        OrdenCreadaEvent published = captor.getValue();
+        assertEquals(1, published.items().size());
+        assertEquals("PROD-002", published.items().get(0).productCode());
+        assertEquals("Monitor 4K UltraWide", published.items().get(0).productName());
+        assertEquals(2, published.items().get(0).quantity());
     }
 
     @Test
