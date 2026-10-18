@@ -1,5 +1,6 @@
 package com.pedidos360.model;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -34,6 +35,7 @@ public class Pedido {
     @Column(nullable = false, length = 100)
     private String cliente;
 
+    @JsonAlias({"email", "cliente_email"})
     @Column(length = 150)
     private String clienteEmail;
 

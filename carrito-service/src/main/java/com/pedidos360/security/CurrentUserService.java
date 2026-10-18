@@ -13,6 +13,14 @@ public class CurrentUserService {
 
     public String resolveUserId(Authentication authentication, HttpServletRequest request) {
         if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) {
+            String preferredUsername = jwt.getClaimAsString("preferred_username");
+            if (StringUtils.hasText(preferredUsername)) {
+                return preferredUsername.trim();
+            }
+            String email = jwt.getClaimAsString("email");
+            if (StringUtils.hasText(email)) {
+                return email.trim();
+            }
             String oid = jwt.getClaimAsString("oid");
             if (StringUtils.hasText(oid)) {
                 return oid;
@@ -21,23 +29,20 @@ public class CurrentUserService {
             if (StringUtils.hasText(sub)) {
                 return sub;
             }
-            String preferredUsername = jwt.getClaimAsString("preferred_username");
-            if (StringUtils.hasText(preferredUsername)) {
-                return preferredUsername;
-            }
         }
 
         if (request != null) {
             String headerUser = request.getHeader("X-User-Id");
             if (StringUtils.hasText(headerUser)) {
-                return headerUser;
+                return headerUser.trim();
             }
             String demoUser = request.getHeader("X-Demo-User");
             if (StringUtils.hasText(demoUser)) {
-                return demoUser;
+                return demoUser.trim();
             }
         }
 
         return "default-user";
     }
 }
+

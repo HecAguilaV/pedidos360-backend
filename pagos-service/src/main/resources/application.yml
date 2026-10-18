@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: pagos-service
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:pedidos360}
     username: ${DB_USERNAME:postgres}
@@ -25,7 +27,8 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0
+          issuer-uri: ${JWT_ISSUER:https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
+
 
 rabbitmq:
   exchange:
