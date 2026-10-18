@@ -90,5 +90,28 @@ class PagosServiceApplicationTests {
             }
         });
     }
+
+    @Test
+    void shouldSkipDuplicateOrderPaymentEventIdempotently() {
+        PagoRepository repository = mock(PagoRepository.class);
+        RabbitTemplate rabbitTemplate = mock(RabbitTemplate.class);
+        Pago existing = new Pago();
+        when(repository.findByOrderId(103L)).thenReturn(Optional.of(existing));
+
+        OrderPaymentListener listener = new OrderPaymentListener(repository, rabbitTemplate);
+        OrdenCreadaEvent event = new OrdenCreadaEvent(
+                103L,
+                "Cliente B2B",
+                new BigDecimal("500.00"),
+                "CONFIRMADO",
+                LocalDateTime.now(),
+                List.of()
+        );
+
+        listener.procesarPagoOrden(event);
+
+        verify(repository, never()).save(any());
+        verify(rabbitTemplate, never()).convertAndSend(any(), any(), any(PagoProcesadoEvent.class));
+    }
 }
 

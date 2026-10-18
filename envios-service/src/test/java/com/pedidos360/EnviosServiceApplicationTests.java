@@ -66,4 +66,27 @@ class EnviosServiceApplicationTests {
 
         verify(repository, never()).save(any());
     }
+
+    @Test
+    void shouldUpdateShipmentStatusAndThrowNotFoundWhenTrackingDoesNotExist() {
+        EnvioRepository repository = mock(EnvioRepository.class);
+        Envio existing = new Envio();
+        existing.setId(12L);
+        existing.setOrderId(7L);
+        existing.setNumeroGuia("TRACK-2026-00007");
+        existing.setEstado("PREPARANDO_PAQUETE");
+
+        when(repository.findById(12L)).thenReturn(Optional.of(existing));
+        when(repository.save(any(Envio.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.findByNumeroGuia("TRACK-2026-99999")).thenReturn(Optional.empty());
+
+        com.pedidos360.controller.EnvioController controller = new com.pedidos360.controller.EnvioController(repository);
+        var response = controller.actualizarEstado(12L, new com.pedidos360.controller.dto.UpdateEnvioStatusRequest("EN_TRANSITO"));
+
+        assertEquals("EN_TRANSITO", response.getBody().getEstado());
+        org.junit.jupiter.api.Assertions.assertThrows(
+                org.springframework.web.server.ResponseStatusException.class,
+                () -> controller.obtenerPorTracking("TRACK-2026-99999")
+        );
+    }
 }
