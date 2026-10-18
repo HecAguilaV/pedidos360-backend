@@ -30,8 +30,14 @@ public class ProductoService {
 
     public Producto create(Producto producto) {
         producto.setId(null);
-        return productoRepository.save(producto);
+        Producto saved = productoRepository.save(producto);
+        if (saved.getCodigo() == null || saved.getCodigo().isBlank()) {
+            saved.setCodigo(String.format("PROD-%03d", saved.getId()));
+            saved = productoRepository.save(saved);
+        }
+        return saved;
     }
+
 
     public boolean deleteById(Long id) {
         if (productoRepository.existsById(id)) {

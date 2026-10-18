@@ -28,7 +28,15 @@ public class DataInitializer {
                     new Producto("PROD-004", "Monitor 27 UHD", "Monitor 4K IPS 144Hz", new BigDecimal("399.99"), 20)
                 ));
                 log.info("4 productos iniciales cargados en la base de datos.");
+            } else {
+                productoRepository.findAll().forEach(producto -> {
+                    if (producto.getCodigo() == null || producto.getCodigo().isBlank()) {
+                        producto.setCodigo(String.format("PROD-%03d", producto.getId()));
+                        productoRepository.save(producto);
+                    }
+                });
             }
         };
     }
 }
+
