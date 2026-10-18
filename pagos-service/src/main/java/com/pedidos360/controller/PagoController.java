@@ -5,6 +5,8 @@ import com.pedidos360.domain.Pago;
 import com.pedidos360.event.PagoProcesadoEvent;
 import com.pedidos360.repository.PagoRepository;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -19,6 +21,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/pagos")
 public class PagoController {
+
+    private static final Logger log = LoggerFactory.getLogger(PagoController.class);
 
     private final PagoRepository pagoRepository;
     private final RabbitTemplate rabbitTemplate;
@@ -75,7 +79,6 @@ public class PagoController {
 
         Pago pagoGuardado = pagoRepository.save(pago);
 
-        // Notificar por RabbitMQ
         try {
             PagoProcesadoEvent event = new PagoProcesadoEvent(
                     pagoGuardado.getId(),
@@ -88,7 +91,12 @@ public class PagoController {
                     pagoGuardado.getFechaPago()
             );
             rabbitTemplate.convertAndSend(ordersExchange, paymentProcessedRoutingKey, event);
-        } catch (Exception ignored) {
+            log.info("[RABBITMQ] Publicado evento '{}' en exchange '{}' para Orden #{}",
+                    paymentProcessedRoutingKey, ordersExchange, pagoGuardado.getOrderId());
+        } catch (Exception e) {
+            log.error("[RABBITMQ] Error al publicar evento '{}' para Orden #{}: {}",
+                    paymentProcessedRoutingKey, pagoGuardado.getOrderId(), e.getMessage(), e);
+            throw new IllegalStateException("Failed to publish pago.procesado event for order ID " + pagoGuardado.getOrderId(), e);
         }
 
         return ResponseEntity.status(HttpStatus.CREATED).body(pagoGuardado);

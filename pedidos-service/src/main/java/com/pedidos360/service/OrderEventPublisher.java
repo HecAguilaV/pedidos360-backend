@@ -23,7 +23,8 @@ public class OrderEventPublisher {
             rabbitTemplate.convertAndSend(RabbitMQConfig.ORDERS_EXCHANGE, RabbitMQConfig.ROUTING_KEY_ORDER_CREATED, event);
             log.info("Evento 'orden.creada' publicado exitosamente para orden ID: {}", event.orderId());
         } catch (Exception e) {
-            log.error("Error al publicar evento 'orden.creada' a RabbitMQ para orden ID: {}: {}", event.orderId(), e.getMessage());
+            log.error("Error al publicar evento 'orden.creada' a RabbitMQ para orden ID: {}: {}", event.orderId(), e.getMessage(), e);
+            throw new IllegalStateException("Failed to publish orden.creada event for order ID " + event.orderId(), e);
         }
     }
 }

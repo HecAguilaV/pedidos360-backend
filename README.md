@@ -13,6 +13,12 @@ Repositorio de microservicios backend para la plataforma **Pedidos360** (Cloud N
 - **RabbitMQ** (`:5672` / `:15672`): Broker de mensajería AMQP (`orders.exchange`).
 - **PostgreSQL** (`:5432`): Base de datos relacional (Amazon RDS PostgreSQL en producción / Docker en local).
 
+## Coreografía de Eventos (RabbitMQ)
+
+- `pedidos-service` publica `orden.creada` hacia `orders.exchange` únicamente **después del commit** de la transacción en PostgreSQL (`TransactionSynchronization.afterCommit()`), evitando eventos huérfanos si la escritura falla.
+- Cuatro colas durables consumen `orden.creada`: `stock-decrement` (`productos-service`), `order-notifications` (`notifications-service`), `shipping-dispatch` (`envios-service`) y `order-payments` (`pagos-service`).
+- `pagos-service` registra la liquidación y emite `pago.procesado` también tras confirmar su transacción local. Si el broker rechaza una publicación, el error se registra en nivel `ERROR` y se propaga (sin bloques `catch` silenciosos).
+
 ## Requisitos
 
 - Docker & Docker Compose

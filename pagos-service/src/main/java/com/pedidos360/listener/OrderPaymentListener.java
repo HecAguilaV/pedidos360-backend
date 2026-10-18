@@ -11,6 +11,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -64,24 +66,38 @@ public class OrderPaymentListener {
         log.info("[PAGOS] Pago liquidado y registrado exitosamente: ID #{} - Transacción: {} - Auth: {}",
                 pagoGuardado.getId(), transaccionId, codigoAuth);
 
-        // Emitir evento de dominio: pago.procesado
-        try {
-            PagoProcesadoEvent pagoEvent = new PagoProcesadoEvent(
-                    pagoGuardado.getId(),
-                    pagoGuardado.getOrderId(),
-                    pagoGuardado.getTransaccionId(),
-                    pagoGuardado.getCliente(),
-                    pagoGuardado.getMonto(),
-                    pagoGuardado.getEstado(),
-                    pagoGuardado.getCodigoAutorizacion(),
-                    pagoGuardado.getFechaPago()
-            );
+        PagoProcesadoEvent pagoEvent = new PagoProcesadoEvent(
+                pagoGuardado.getId(),
+                pagoGuardado.getOrderId(),
+                pagoGuardado.getTransaccionId(),
+                pagoGuardado.getCliente(),
+                pagoGuardado.getMonto(),
+                pagoGuardado.getEstado(),
+                pagoGuardado.getCodigoAutorizacion(),
+                pagoGuardado.getFechaPago()
+        );
 
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    publishPaymentProcessed(pagoEvent);
+                }
+            });
+        } else {
+            publishPaymentProcessed(pagoEvent);
+        }
+    }
+
+    private void publishPaymentProcessed(PagoProcesadoEvent pagoEvent) {
+        try {
             rabbitTemplate.convertAndSend(ordersExchange, paymentProcessedRoutingKey, pagoEvent);
             log.info("[RABBITMQ] Publicado evento '{}' en exchange '{}' para Orden #{}",
-                    paymentProcessedRoutingKey, ordersExchange, event.orderId());
+                    paymentProcessedRoutingKey, ordersExchange, pagoEvent.orderId());
         } catch (Exception e) {
-            log.error("[RABBITMQ] Error al emitir evento pago.procesado: {}", e.getMessage());
+            log.error("[RABBITMQ] Error al emitir evento pago.procesado para Orden #{}: {}",
+                    pagoEvent.orderId(), e.getMessage(), e);
+            throw new IllegalStateException("Failed to publish pago.procesado event for order ID " + pagoEvent.orderId(), e);
         }
     }
 }
