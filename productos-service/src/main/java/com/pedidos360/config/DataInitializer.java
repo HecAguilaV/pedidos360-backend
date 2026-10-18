@@ -20,18 +20,33 @@ public class DataInitializer {
     CommandLineRunner initProductos(ProductoRepository productoRepository) {
         return args -> {
             if (productoRepository.count() == 0) {
-                log.info("Inicializando datos de prueba para productos...");
+                log.info("Inicializando catalogo de productos en CLP...");
                 productoRepository.saveAll(List.of(
-                    new Producto("PROD-001", "Laptop Pro 16", "Laptop de alto rendimiento 32GB RAM", new BigDecimal("1499.99"), 15),
-                    new Producto("PROD-002", "Mouse Inalámbrico", "Mouse ergonómico con sensor óptico", new BigDecimal("29.99"), 50),
-                    new Producto("PROD-003", "Teclado Mecánico", "Teclado mecánico RGB switches red", new BigDecimal("89.99"), 30),
-                    new Producto("PROD-004", "Monitor 27 UHD", "Monitor 4K IPS 144Hz", new BigDecimal("399.99"), 20)
+                    new Producto("PROD-001", "Laptop Pro 16", "Notebook profesional 16 pulgadas, 32GB RAM, SSD 1TB NVMe", new BigDecimal("1499990"), 15),
+                    new Producto("PROD-002", "Mouse Inalámbrico", "Mouse ergonómico inalámbrico con sensor óptico de precisión", new BigDecimal("29990"), 50),
+                    new Producto("PROD-003", "Teclado Mecánico", "Teclado mecánico compacto con switches lineales silenciosos", new BigDecimal("89990"), 30),
+                    new Producto("PROD-004", "Monitor 27 UHD", "Monitor 27 pulgadas resolución 4K IPS 144Hz USB-C", new BigDecimal("399990"), 20)
                 ));
-                log.info("4 productos iniciales cargados en la base de datos.");
+                log.info("4 productos iniciales en CLP cargados en la base de datos.");
             } else {
                 productoRepository.findAll().forEach(producto -> {
+                    boolean changed = false;
                     if (producto.getCodigo() == null || producto.getCodigo().isBlank()) {
                         producto.setCodigo(String.format("PROD-%03d", producto.getId()));
+                        changed = true;
+                    }
+                    if (producto.getPrecio() != null && producto.getPrecio().compareTo(new BigDecimal("2000")) < 0) {
+                        BigDecimal clpPrice = switch (producto.getCodigo()) {
+                            case "PROD-001" -> new BigDecimal("1499990");
+                            case "PROD-002" -> new BigDecimal("29990");
+                            case "PROD-003" -> new BigDecimal("89990");
+                            case "PROD-004" -> new BigDecimal("399990");
+                            default -> producto.getPrecio().multiply(new BigDecimal("1000")).setScale(0, java.math.RoundingMode.HALF_UP);
+                        };
+                        producto.setPrecio(clpPrice);
+                        changed = true;
+                    }
+                    if (changed) {
                         productoRepository.save(producto);
                     }
                 });
@@ -39,4 +54,3 @@ public class DataInitializer {
         };
     }
 }
-

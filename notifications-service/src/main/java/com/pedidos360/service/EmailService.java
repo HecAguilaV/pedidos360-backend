@@ -11,12 +11,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.HtmlUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
+    private static final Locale CHILE_LOCALE = Locale.forLanguageTag("es-CL");
 
     private final JavaMailSender mailSender;
 
@@ -67,6 +71,12 @@ public class EmailService {
         return value.trim().replaceAll("^\"+|\"+$", "").trim();
     }
 
+    public static String formatClp(BigDecimal amount) {
+        BigDecimal safe = amount != null ? amount.setScale(0, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        NumberFormat nf = NumberFormat.getIntegerInstance(CHILE_LOCALE);
+        return "$" + nf.format(safe);
+    }
+
     private boolean sendHtmlEmail(String recipient, String subject, String htmlContent) {
         log.info("==> [EmailService] Preparando envio de correo para: '{}' | Asunto: '{}'", recipient, subject);
 
@@ -105,17 +115,14 @@ public class EmailService {
             <head><meta charset="UTF-8"></head>
             <body style="margin: 0; padding: 20px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                 <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
-                    <div style="background: linear-gradient(135deg, #0f172a 0%%, #1e293b 100%%); padding: 30px; color: #ffffff; text-align: center;">
-                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">PEDIDOS 360</h1>
-                        <p style="margin: 5px 0 0 0; font-size: 14px; color: #94a3b8;">Notificación Oficial del Sistema</p>
+                    <div style="background: #0f172a; padding: 28px; color: #ffffff; text-align: center;">
+                        <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Pedidos360</h1>
+                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #94a3b8;">Notificación de Atención al Cliente</p>
                     </div>
                     <div style="padding: 24px;">
                         <h2 style="margin: 0 0 12px 0; font-size: 18px; color: #0f172a;">%s</h2>
                         <p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.6; color: #334155; white-space: pre-line;">%s</p>
                         <p style="margin: 0; font-size: 13px; color: #64748b;">Destinatario: <strong style="color: #0f172a;">%s</strong></p>
-                    </div>
-                    <div style="background: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
-                        <p style="margin: 0; font-size: 11px; color: #94a3b8;">Evaluación Cloud Native I &bull; DSY1107 &bull; Duoc UC</p>
                     </div>
                 </div>
             </body>
@@ -124,24 +131,29 @@ public class EmailService {
     }
 
     private String buildReceiptHtml(Long orderId, String clientName, String recipient, BigDecimal total, List<OrdenCreadaEvent.ItemOrdenEvent> items) {
+        BigDecimal grossTotal = total != null ? total.setScale(0, RoundingMode.HALF_UP) : BigDecimal.ZERO;
+        BigDecimal netAmount = grossTotal.divide(new BigDecimal("1.19"), 0, RoundingMode.HALF_UP);
+        BigDecimal ivaAmount = grossTotal.subtract(netAmount);
+
         StringBuilder itemsRows = new StringBuilder();
         if (items != null && !items.isEmpty()) {
             for (OrdenCreadaEvent.ItemOrdenEvent item : items) {
-                BigDecimal subtotal = item.unitPrice().multiply(BigDecimal.valueOf(item.quantity()));
+                BigDecimal unitPrice = item.unitPrice() != null ? item.unitPrice() : BigDecimal.ZERO;
+                BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(item.quantity()));
                 String safeProductName = HtmlUtils.htmlEscape(item.productName() != null ? item.productName() : "");
                 itemsRows.append(String.format("""
                     <tr style="border-bottom: 1px solid #e2e8f0;">
                         <td style="padding: 12px; font-family: sans-serif; font-size: 14px; color: #1e293b;">%s</td>
                         <td style="padding: 12px; font-family: sans-serif; font-size: 14px; color: #64748b; text-align: center;">%d</td>
-                        <td style="padding: 12px; font-family: sans-serif; font-size: 14px; color: #64748b; text-align: right;">$%.2f</td>
-                        <td style="padding: 12px; font-family: sans-serif; font-size: 14px; font-weight: bold; color: #0f172a; text-align: right;">$%.2f</td>
+                        <td style="padding: 12px; font-family: sans-serif; font-size: 14px; color: #64748b; text-align: right;">%s</td>
+                        <td style="padding: 12px; font-family: sans-serif; font-size: 14px; font-weight: bold; color: #0f172a; text-align: right;">%s</td>
                     </tr>
-                """, safeProductName, item.quantity(), item.unitPrice(), subtotal));
+                """, safeProductName, item.quantity(), formatClp(unitPrice), formatClp(subtotal)));
             }
         } else {
             itemsRows.append("""
                 <tr>
-                    <td colspan="4" style="padding: 12px; font-family: sans-serif; font-size: 14px; color: #64748b; text-align: center;">Compra de Productos Pedidos360</td>
+                    <td colspan="4" style="padding: 12px; font-family: sans-serif; font-size: 14px; color: #64748b; text-align: center;">Compra en Pedidos360</td>
                 </tr>
             """);
         }
@@ -152,13 +164,11 @@ public class EmailService {
             <head><meta charset="UTF-8"></head>
             <body style="margin: 0; padding: 20px; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
                 <div style="max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0;">
-                    <!-- Cabecera -->
-                    <div style="background: linear-gradient(135deg, #0f172a 0%%, #1e293b 100%%); padding: 30px; color: #ffffff; text-align: center;">
-                        <h1 style="margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px;">PEDIDOS 360</h1>
-                        <p style="margin: 5px 0 0 0; font-size: 14px; color: #94a3b8;">Comprobante Oficial de Compra / Boleta Electrónica</p>
+                    <div style="background: #0f172a; padding: 28px; color: #ffffff; text-align: center;">
+                        <h1 style="margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px;">Pedidos360</h1>
+                        <p style="margin: 4px 0 0 0; font-size: 13px; color: #94a3b8;">Boleta Electrónica de Compra (CLP)</p>
                     </div>
 
-                    <!-- Datos de la orden -->
                     <div style="padding: 24px; border-bottom: 1px solid #f1f5f9;">
                         <table style="width: 100%%; border-collapse: collapse;">
                             <tr>
@@ -166,21 +176,20 @@ public class EmailService {
                                 <td style="font-size: 13px; color: #64748b; text-align: right;">Cliente: <strong style="color: #0f172a;">%s</strong></td>
                             </tr>
                             <tr>
-                                <td style="font-size: 13px; color: #64748b; padding-top: 6px;">Email: <strong style="color: #0f172a;">%s</strong></td>
-                                <td style="font-size: 13px; color: #64748b; padding-top: 6px; text-align: right;">Estado: <span style="background: #dcfce7; color: #15803d; padding: 2px 8px; border-radius: 9999px; font-weight: 600; font-size: 12px;">PAGADA</span></td>
+                                <td style="font-size: 13px; color: #64748b; padding-top: 6px;">Correo: <strong style="color: #0f172a;">%s</strong></td>
+                                <td style="font-size: 13px; color: #64748b; padding-top: 6px; text-align: right;">Estado: <span style="background: #ecfdf5; color: #047857; padding: 2px 8px; border-radius: 9999px; font-weight: 600; font-size: 12px;">PAGADO</span></td>
                             </tr>
                         </table>
                     </div>
 
-                    <!-- Tabla de productos -->
                     <div style="padding: 24px;">
-                        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: #0f172a;">Detalle de la Compra</h3>
+                        <h3 style="margin: 0 0 16px 0; font-size: 16px; color: #0f172a;">Detalle de Productos</h3>
                         <table style="width: 100%%; border-collapse: collapse;">
                             <thead>
                                 <tr style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
                                     <th style="padding: 10px 12px; font-size: 12px; text-transform: uppercase; color: #475569; text-align: left;">Producto</th>
                                     <th style="padding: 10px 12px; font-size: 12px; text-transform: uppercase; color: #475569; text-align: center;">Cant.</th>
-                                    <th style="padding: 10px 12px; font-size: 12px; text-transform: uppercase; color: #475569; text-align: right;">Precio</th>
+                                    <th style="padding: 10px 12px; font-size: 12px; text-transform: uppercase; color: #475569; text-align: right;">Precio Unit.</th>
                                     <th style="padding: 10px 12px; font-size: 12px; text-transform: uppercase; color: #475569; text-align: right;">Subtotal</th>
                                 </tr>
                             </thead>
@@ -189,17 +198,23 @@ public class EmailService {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colspan="3" style="padding: 16px 12px; font-size: 16px; font-weight: bold; color: #0f172a; text-align: right;">TOTAL:</td>
-                                    <td style="padding: 16px 12px; font-size: 20px; font-weight: 800; color: #059669; text-align: right;">$%.2f</td>
+                                    <td colspan="3" style="padding: 10px 12px 4px 12px; font-size: 13px; color: #64748b; text-align: right;">Monto Neto:</td>
+                                    <td style="padding: 10px 12px 4px 12px; font-size: 13px; color: #0f172a; text-align: right;">%s</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" style="padding: 4px 12px 10px 12px; font-size: 13px; color: #64748b; text-align: right;">IVA (19%%):</td>
+                                    <td style="padding: 4px 12px 10px 12px; font-size: 13px; color: #0f172a; text-align: right;">%s</td>
+                                </tr>
+                                <tr style="border-top: 1px solid #e2e8f0;">
+                                    <td colspan="3" style="padding: 12px; font-size: 15px; font-weight: bold; color: #0f172a; text-align: right;">TOTAL PAGADO (CLP):</td>
+                                    <td style="padding: 12px; font-size: 18px; font-weight: 800; color: #0f172a; text-align: right;">%s</td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
 
-                    <!-- Pie de pagina -->
-                    <div style="background: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
-                        <p style="margin: 0; font-size: 13px; color: #64748b;">Tu pedido ya está siendo preparado por el microservicio de logística.</p>
-                        <p style="margin: 6px 0 0 0; font-size: 11px; color: #94a3b8;">Evaluación Cloud Native I &bull; DSY1107 &bull; Duoc UC</p>
+                    <div style="background: #f8fafc; padding: 18px; text-align: center; border-top: 1px solid #e2e8f0;">
+                        <p style="margin: 0; font-size: 13px; color: #64748b;">Gracias por tu compra en Pedidos360. Puedes seguir el estado de tu despacho en la sección Seguimiento.</p>
                     </div>
                 </div>
             </body>
@@ -209,6 +224,8 @@ public class EmailService {
                 HtmlUtils.htmlEscape(clientName != null ? clientName : ""),
                 HtmlUtils.htmlEscape(recipient != null ? recipient : ""),
                 itemsRows.toString(),
-                total != null ? total : BigDecimal.ZERO);
+                formatClp(netAmount),
+                formatClp(ivaAmount),
+                formatClp(grossTotal));
     }
 }

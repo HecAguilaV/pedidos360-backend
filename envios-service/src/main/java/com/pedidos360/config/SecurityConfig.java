@@ -85,7 +85,10 @@ public class SecurityConfig {
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health", "/error").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/v1/envios/**").permitAll()
+                // Full listing exposes recipient PII: staff only
+                .requestMatchers(HttpMethod.GET, "/api/v1/envios").hasAnyRole("Despachador", "Administrador", "ADMIN")
+                // Single lookups (by tracking guide or order id) stay public for customer tracking
+                .requestMatchers(HttpMethod.GET, "/api/v1/envios/tracking/*", "/api/v1/envios/orden/*").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/v1/envios/*/estado").hasAnyRole("Despachador", "Administrador", "ADMIN")
                 .anyRequest().authenticated()
             )

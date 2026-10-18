@@ -24,7 +24,7 @@ public class DataInitializer {
                 LocalDateTime now = LocalDateTime.now();
                 envioRepository.saveAll(List.of(
                     new Envio(101L, "TRACK-2026-00101", "DataCenter Tech Chile SPA", "contacto@techchile.cl", "Av. Providencia 1234, Santiago", "PREPARANDO_PAQUETE", "Chilexpress", now, now.plusDays(2)),
-                    new Envio(102L, "TRACK-2026-00102", "Héctor Águila", "he.aguila@duocuc.cl", "Av. Vitacura 5000, Las Condes", "PEDIDO_CONFIRMADO", "Starken", now, now.plusDays(3)),
+                    new Envio(102L, "TRACK-2026-00102", "Camila Soto", "camila.soto@ejemplo.cl", "Av. Vitacura 5000, Las Condes", "PEDIDO_CONFIRMADO", "Starken", now, now.plusDays(3)),
                     new Envio(103L, "TRACK-2026-00103", "Soluciones Cloud Austral", "infra@cloudaustral.cl", "Camino El Alba 880, Las Condes", "EN_TRANSITO", "Blue Express", now.minusDays(1), now.plusDays(1))
                 ));
                 log.info("3 envíos iniciales cargados en la base de datos.");
