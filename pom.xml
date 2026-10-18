@@ -17,5 +17,6 @@
         <module>notifications-service</module>
         <module>envios-service</module>
         <module>pagos-service</module>
+        <module>lambda-dual-authorizer</module>
     </modules>
 </project>
