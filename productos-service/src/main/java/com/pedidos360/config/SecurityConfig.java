@@ -58,9 +58,11 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/api/v1/productos/**").hasAuthority("SCOPE_productos.read")
-                .requestMatchers(HttpMethod.POST, "/api/v1/productos/**").hasAuthority("SCOPE_productos.write")
-                .requestMatchers(HttpMethod.DELETE, "/api/v1/productos/**").hasRole("ADMIN")
+                .requestMatchers("/actuator/health", "/error").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/productos/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/productos/**").hasAnyRole("Administrador", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/v1/productos/**").hasAnyRole("Administrador", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/v1/productos/**").hasAnyRole("Administrador", "ADMIN")
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter())));
@@ -74,8 +76,8 @@ public class SecurityConfig {
     }
 
     /**
-     * Extracts both delegated 'scp'/'scope' claims (SCOPE_...)
-     * and Entra app roles 'roles' claims (ROLE_...).
+     * Extracts delegated 'scp'/'scope' claims (SCOPE_...),
+     * Entra app roles 'roles' claims (ROLE_...), and Cognito 'cognito:groups'.
      */
     static class CustomJwtGrantedAuthoritiesConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
         private final JwtGrantedAuthoritiesConverter defaultGrantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
@@ -83,15 +85,42 @@ public class SecurityConfig {
         @Override
         public Collection<GrantedAuthority> convert(Jwt jwt) {
             Collection<GrantedAuthority> authorities = new ArrayList<>(defaultGrantedAuthoritiesConverter.convert(jwt));
+            boolean hasRole = false;
 
             List<String> roles = jwt.getClaimAsStringList("roles");
             if (roles != null) {
                 for (String role : roles) {
-                    authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+                    if (role != null && !role.isBlank()) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+                        if ("Administrador".equalsIgnoreCase(role) || "ADMIN".equalsIgnoreCase(role)) {
+                            authorities.add(new SimpleGrantedAuthority("ROLE_Administrador"));
+                            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                        }
+                        hasRole = true;
+                    }
                 }
+            }
+
+            List<String> cognitoGroups = jwt.getClaimAsStringList("cognito:groups");
+            if (cognitoGroups != null) {
+                for (String group : cognitoGroups) {
+                    if (group != null && !group.isBlank()) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + group));
+                        if ("Administrador".equalsIgnoreCase(group) || "ADMIN".equalsIgnoreCase(group)) {
+                            authorities.add(new SimpleGrantedAuthority("ROLE_Administrador"));
+                            authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                        }
+                        hasRole = true;
+                    }
+                }
+            }
+
+            if (!hasRole) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_Usuario"));
             }
 
             return authorities;
         }
     }
 }
+

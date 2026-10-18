@@ -28,7 +28,15 @@ public class DataInitializer {
                     new Envio(103L, "TRACK-2026-00103", "Soluciones Cloud Austral", "infra@cloudaustral.cl", "Camino El Alba 880, Las Condes", "EN_TRANSITO", "Blue Express", now.minusDays(1), now.plusDays(1))
                 ));
                 log.info("3 envíos iniciales cargados en la base de datos.");
+            } else {
+                envioRepository.findAll().forEach(envio -> {
+                    if (envio.getNumeroGuia() != null && !envio.getNumeroGuia().startsWith("TRACK-2026-") && envio.getOrderId() != null) {
+                        envio.setNumeroGuia(String.format("TRACK-2026-%05d", envio.getOrderId()));
+                        envioRepository.save(envio);
+                    }
+                });
             }
         };
     }
 }
+

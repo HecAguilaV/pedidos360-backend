@@ -32,7 +32,7 @@ public class ShippingOrderEventListener {
             return;
         }
 
-        String trackingNumber = "TRACK-" + String.format("%05d", event.orderId()) + "-" + (System.currentTimeMillis() % 1000);
+        String trackingNumber = String.format("TRACK-2026-%05d", event.orderId());
         LocalDateTime despacho = LocalDateTime.now();
         LocalDateTime entregaEstimada = despacho.plusDays(2);
 
