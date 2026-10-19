@@ -43,9 +43,11 @@ buildNumber.properties
 .settings/
 .vscode/
 
-# Environment variables
+# Environment variables and secrets
 .env
 .env.local
+*.pem
+*.key
 
 # OS
 .DS_Store
