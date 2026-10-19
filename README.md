@@ -61,21 +61,27 @@ Al desplegar en **AWS EC2** (o al rotar de laboratorio con `./configure-lab.sh`)
 
 | Variable | Descripción | Ejemplo |
 |---|---|---|
-| `SPRING_PROFILES_ACTIVE` | Activa validación estricta JWT y RBAC | `prod` |
-| `DB_HOST` | Endpoint de Amazon RDS PostgreSQL (o `postgres` en Docker) | `pedidos360-db.xyz.us-east-1.rds.amazonaws.com` |
+| `SPRING_PROFILES_ACTIVE` | Activa validación estricta JWT y RBAC (`prod` en AWS, `dev` en local) | `prod` |
+| `DB_HOST` | Endpoint de Amazon RDS PostgreSQL (o `postgres` en Docker) | `pedidos360-db.xxxx.us-east-1.rds.amazonaws.com` |
 | `DB_PORT` | Puerto de PostgreSQL | `5432` |
 | `DB_NAME` | Nombre de la base de datos | `pedidos360` |
-| `DB_USERNAME` | Usuario maestro RDS | `postgres` |
-| `DB_PASSWORD` | Contraseña RDS | `miPasswordSeguro123` |
+| `DB_USERNAME` | Usuario maestro RDS o Postgres local | `postgres` |
+| `DB_PASSWORD` | Contraseña de base de datos | `<TU_PASSWORD_RDS>` |
+| `RABBITMQ_USER` | Usuario broker RabbitMQ | `guest` (o personalizado) |
+| `RABBITMQ_PASS` | Contraseña broker RabbitMQ | `<TU_PASSWORD_RABBITMQ>` |
+| `MAIL_HOST` | Servidor SMTP para boletas de notifications-service | `smtp.gmail.com` |
+| `MAIL_PORT` | Puerto SMTP TLS | `587` |
+| `MAIL_USERNAME` | Cuenta de correo emisora | `<TU_CORREO>@gmail.com` |
+| `MAIL_PASSWORD` | Contraseña de aplicación (16 dígitos) | `<APP_PASSWORD_16_DIGITOS>` |
 | `JWT_ISSUER` | Issuer de Microsoft Entra ID | `https://login.microsoftonline.com/<TENANT_ID>/v2.0` |
-| `JWT_AUDIENCE` | Audience registrada en Entra | `api://<BACKEND_APP_ID>,<BACKEND_APP_ID>` |
+| `JWT_AUDIENCE` | Audience registrada en Entra (App ID URI) | `api://<BACKEND_APP_ID>,<BACKEND_APP_ID>` |
 | `COGNITO_REGION` | Región del User Pool de AWS Cognito | `us-east-1` |
 | `COGNITO_USER_POOL_ID` | ID del User Pool (inyectado en runtime al frontend) | `us-east-1_AbCdEf123` |
 | `COGNITO_CLIENT_ID` | App Client ID público de Cognito | `1a2b3c4d5e6f7g8h9i0j` |
-| `COGNITO_DOMAIN` | Dominio Hosted UI de Cognito | `https://pedidos360.auth.us-east-1.amazoncognito.com` |
+| `COGNITO_DOMAIN` | Dominio Hosted UI de Cognito | `https://<dominio>.auth.us-east-1.amazoncognito.com` |
 | `COGNITO_REDIRECT_URI` | Redirect URI tras OAuth2 Hosted UI | `https://<id>.cloudfront.net/login` |
 | `COGNITO_ISSUER` | Issuer validado por los 6 microservicios | `https://cognito-idp.us-east-1.amazonaws.com/us-east-1_AbCdEf123` |
-| `CORS_ALLOWED_ORIGINS` | Orígenes habilitados en CORS | `https://<id>.cloudfront.net,http://<IP-EC2>` |
+| `CORS_ALLOWED_ORIGINS` | Orígenes habilitados en CORS (separados por coma) | `https://<id>.cloudfront.net,http://<IP-ELASTICA-EC2>` |
 
 ### Inyección Runtime de AWS Cognito en el Frontend (Rotación sin Rebuild)
 El contenedor `pedidos360-frontend` ejecuta `/docker-entrypoint.d/40-runtime-config.sh` al iniciar Nginx y genera `/usr/share/nginx/html/assets/runtime-config.json` a partir de las variables `COGNITO_*` definidas en `.env` y pasadas en `docker-compose.yml`. Cuando cambia el laboratorio de AWS, basta con correr `./configure-lab.sh` y `docker compose up -d` sin recompilar la imagen de Angular. La configuración de Microsoft Entra ID permanece en `src/environments/environment.prod.ts`.

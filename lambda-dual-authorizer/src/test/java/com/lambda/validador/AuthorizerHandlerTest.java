@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AuthorizerHandlerTest {
 
-    private static final String AZURE_ISSUER = "https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0";
+    private static final String AZURE_ISSUER = "https://login.microsoftonline.com/00000000-0000-0000-0000-000000000000/v2.0";
     private static final String COGNITO_ISSUER = "https://cognito-idp.us-east-1.amazonaws.com/us-east-1_AbCdEf123";
 
     private RSAKey rsaKey;

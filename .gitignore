@@ -45,9 +45,14 @@ buildNumber.properties
 
 # Environment variables and secrets
 .env
-.env.local
+.env.*
+!*.env.example
 *.pem
 *.key
+*.p8
+*.p12
+*.crt
+*.cer
 
 # OS
 .DS_Store

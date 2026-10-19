@@ -3,5 +3,5 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${JWT_ISSUER:https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
-          audiences: ${JWT_AUDIENCE:api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
+          issuer-uri: ${JWT_ISSUER:}
+          audiences: ${JWT_AUDIENCE:}

@@ -41,7 +41,7 @@ public class SecurityConfig {
     @Value("${CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:5173,http://localhost:80,http://localhost,http://*:4200,http://*:80,https://*.amazonaws.com}")
     private String corsAllowedOrigins;
 
-    @Value("${JWT_ISSUER:https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}")
+    @Value("${JWT_ISSUER:}")
     private String azureIssuer;
 
     @Value("${COGNITO_ISSUER:}")

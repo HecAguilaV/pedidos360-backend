@@ -31,8 +31,8 @@ services:
       DB_NAME: ${DB_NAME:-pedidos360}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
-      JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost,http://*:4200,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
@@ -61,8 +61,8 @@ services:
       DB_NAME: ${DB_NAME:-pedidos360}
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
-      JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost,http://*:4200,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
@@ -95,8 +95,8 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
-      JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
-      JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost,http://*:4200,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
@@ -124,8 +124,8 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
-      JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
-      JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost,http://*:4200,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
@@ -152,8 +152,8 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
-      JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
-      JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost,http://*:4200,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
@@ -182,8 +182,8 @@ services:
       RABBITMQ_PORT: 5672
       RABBITMQ_USERNAME: ${RABBITMQ_USER:-guest}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASS:-guest}
-      JWT_ISSUER: ${JWT_ISSUER:-https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0}
-      JWT_AUDIENCE: ${JWT_AUDIENCE:-api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5}
+      JWT_ISSUER: ${JWT_ISSUER:-}
+      JWT_AUDIENCE: ${JWT_AUDIENCE:-}
       COGNITO_ISSUER: ${COGNITO_ISSUER:-}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:4200,http://localhost:5173,http://localhost:8080,http://localhost,http://*:4200,http://*:8080,https://*.amazonaws.com,https://*.cloudfront.net}
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}

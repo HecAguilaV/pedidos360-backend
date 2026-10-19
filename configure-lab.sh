@@ -44,6 +44,22 @@ COGNITO_CLIENT_VAL=$(prompt_val "COGNITO_CLIENT_ID" "11. Cognito App Client ID" 
 COGNITO_DOMAIN_VAL=$(prompt_val "COGNITO_DOMAIN" "12. Cognito Hosted UI Domain (ej. https://p360.auth.us-east-1.amazoncognito.com)" "")
 MAIL_USER_VAL=$(prompt_val "MAIL_USERNAME" "13. Correo Gmail SMTP (notifications-service)" "")
 MAIL_PASS_VAL=$(prompt_val "MAIL_PASSWORD" "14. App Password Gmail SMTP (16 caracteres)" "")
+RABBIT_USER_VAL=$(prompt_val "RABBITMQ_USER" "15. Usuario RabbitMQ" "guest")
+RABBIT_PASS_VAL=$(prompt_val "RABBITMQ_PASS" "16. Contraseña RabbitMQ" "guest")
+ENTRA_TENANT_VAL=$(prompt_val "ENTRA_TENANT_ID" "17. Azure Entra ID Tenant ID (Directory ID)" "")
+ENTRA_CLIENT_VAL=$(prompt_val "ENTRA_CLIENT_ID" "18. Azure Entra ID Client ID (Backend API App ID)" "")
+
+if [[ -n "${ENTRA_TENANT_VAL}" ]]; then
+  JWT_ISSUER_VAL="https://login.microsoftonline.com/${ENTRA_TENANT_VAL}/v2.0"
+else
+  JWT_ISSUER_VAL=$(prompt_val "JWT_ISSUER" "19. JWT Issuer URL" "https://login.microsoftonline.com/<TENANT_ID>/v2.0")
+fi
+
+if [[ -n "${ENTRA_CLIENT_VAL}" ]]; then
+  JWT_AUDIENCE_VAL="api://${ENTRA_CLIENT_VAL},${ENTRA_CLIENT_VAL}"
+else
+  JWT_AUDIENCE_VAL=$(prompt_val "JWT_AUDIENCE" "20. JWT Audience" "api://<CLIENT_ID>,<CLIENT_ID>")
+fi
 
 PUBLIC_ORIGIN_CLEAN="${PUBLIC_ORIGIN%/}"
 if [[ -n "${COGNITO_POOL_VAL}" ]]; then
@@ -75,8 +91,8 @@ DB_USERNAME=${DB_USER_VAL}
 DB_PASSWORD=${DB_PASS_VAL}
 
 # RabbitMQ Broker
-RABBITMQ_USER=guest
-RABBITMQ_PASS=guest
+RABBITMQ_USER=${RABBIT_USER_VAL}
+RABBITMQ_PASS=${RABBIT_PASS_VAL}
 
 # SMTP Email Service
 MAIL_HOST=smtp.gmail.com
@@ -85,8 +101,8 @@ MAIL_USERNAME=${MAIL_USER_VAL}
 MAIL_PASSWORD=${MAIL_PASS_VAL}
 
 # Microsoft Entra ID (Backend validation)
-JWT_ISSUER=https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0
-JWT_AUDIENCE=api://4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5,4c9cb95d-2a2e-4f3c-88eb-1fbe551829b5
+JWT_ISSUER=${JWT_ISSUER_VAL}
+JWT_AUDIENCE=${JWT_AUDIENCE_VAL}
 
 # AWS Cognito User Pool (Injected into backend & frontend runtime-config.json)
 COGNITO_REGION=${COGNITO_REGION_VAL}

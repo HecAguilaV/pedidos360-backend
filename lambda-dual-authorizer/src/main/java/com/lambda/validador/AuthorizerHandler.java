@@ -27,8 +27,7 @@ import java.util.regex.Pattern;
  */
 public class AuthorizerHandler {
 
-    private static final String DEFAULT_AZURE_ISSUER =
-            "https://login.microsoftonline.com/e5372bf0-c5e3-4286-887c-79069f209c1f/v2.0";
+    private static final String DEFAULT_AZURE_ISSUER = "";
 
     private static final Pattern COGNITO_ISSUER_PATTERN =
             Pattern.compile("^https://cognito-idp\\.[a-z0-9-]+\\.amazonaws\\.com/[a-z0-9-]+_[A-Za-z0-9]+$");
